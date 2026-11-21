@@ -9,7 +9,9 @@
     }
     leaves.forEach(leaf => {
       const summary = leaf.querySelector('summary');
-      summary.addEventListener('pointerenter', event => {
+      // A scroll or a late-loading font can move another row under a stationary
+      // pointer. Keep the selected sheet until the visitor moves the pointer.
+      summary.addEventListener('pointermove', event => {
         if (wide.matches && hasHover.matches && event.pointerType !== 'touch') reveal(leaf);
       });
       summary.addEventListener('focus', () => {
