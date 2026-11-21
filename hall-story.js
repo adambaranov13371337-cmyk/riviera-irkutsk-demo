@@ -1,5 +1,4 @@
-(() => {
-  const track = document.querySelector('.hall-track');
+document.querySelectorAll('.hall-track').forEach(track => {
   const scene = track.querySelector('.hall-scene');
   const layout = track.querySelector('.hall-layout');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -79,4 +78,4 @@
   reduced.addEventListener('change', size);
   document.fonts.ready.then(size);
   size();
-})();
+});
