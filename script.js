@@ -34,15 +34,13 @@ let slide=0;
 function showPhoto(index) {
   slide=(index+album.length)%album.length;
   const photo=album[slide], photoImage=photo.querySelector('img'),out=dialog.querySelector('img');
-  out.src=photo.href;
+  out.src=photo.dataset.image;
   out.alt=photoImage?.alt || 'Фотография ресторана';
   dialog.querySelector('span').textContent=(slide+1)+' / '+album.length;
   dialog.querySelector('.prev').hidden=dialog.querySelector('.next').hidden=album.length<2;
 }
-document.querySelectorAll('a.photo').forEach(link=>link.addEventListener('click',event=>{
-  if(!dialog.showModal || event.metaKey || event.ctrlKey) return;
-  event.preventDefault();
-  album=Array.from((link.closest('.gallerygrid,.strip') || link.parentElement).querySelectorAll('a.photo:not([hidden])'));
+document.querySelectorAll('button.photo[data-image]').forEach(link=>link.addEventListener('click',()=>{
+  album=Array.from((link.closest('.gallerygrid,.strip') || link.parentElement).querySelectorAll('button.photo[data-image]:not([hidden])'));
   showPhoto(album.indexOf(link));
   dialog.showModal();
   dialog.querySelector('.close').focus();
@@ -63,4 +61,105 @@ if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'Intersecti
   },{threshold:.08});
   document.querySelectorAll('.story, .menucards>a, .gallery h2, .booking h2, .doc, .product').forEach(el=>observer.observe(el));
 }
+
+// Preserve native touch and trackpad momentum. Ease only the discrete steps
+// of a mouse wheel; align a nearby section once the gesture has finished.
+function enableSectionScrolling() {
+  const sections = [...document.querySelectorAll('main > section')];
+  if (!sections[0]?.matches('.hero')) return;
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  let gestureStart = null;
+  let target = null;
+  let frame = 0;
+  let timer = 0;
+  let lastTime = 0;
+  let touching = false;
+
+  function reset() {
+    clearTimeout(timer);
+    cancelAnimationFrame(frame);
+    frame = 0;
+    target = null;
+    gestureStart = null;
+  }
+
+  function settle() {
+    if (target !== null || touching || gestureStart === null) return;
+    const from = gestureStart;
+    reset();
+    if (reduced.matches || document.querySelector('dialog[open]')) return;
+    const range = Math.min(110, innerHeight * 0.12);
+    // A small movement away from an aligned section must let the reader leave it.
+    const offsets = sections.map(section => section.getBoundingClientRect().top)
+      .filter(offset => Math.abs(offset) <= range && Math.abs(offset) > 1
+        && Math.abs(scrollY + offset - from) > range);
+    offsets.sort((a, b) => Math.abs(a) - Math.abs(b));
+    if (offsets.length) scrollBy({top: offsets[0], behavior: 'smooth'});
+  }
+
+  function scheduleSettle() {
+    clearTimeout(timer);
+    timer = setTimeout(settle, 160);
+  }
+
+  function advance(now) {
+    const elapsed = Math.min(48, now - lastTime);
+    lastTime = now;
+    target = Math.min(target, Math.max(0, document.documentElement.scrollHeight - innerHeight));
+    const distance = target - scrollY;
+    if (Math.abs(distance) <= 2) {
+      scrollTo({top: target, behavior: 'instant'});
+      target = null;
+      frame = 0;
+      scheduleSettle();
+      return;
+    }
+    const step = Math.max(1, Math.abs(distance) * (1 - Math.exp(-elapsed / 58)));
+    scrollTo({top: scrollY + Math.sign(distance) * step, behavior: 'instant'});
+    frame = requestAnimationFrame(advance);
+  }
+
+  window.addEventListener('wheel', event => {
+    if (reduced.matches || !event.cancelable || event.defaultPrevented || event.ctrlKey ||
+        event.shiftKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY) ||
+        document.querySelector('dialog[open]') || event.target.closest?.('select,textarea,iframe,[data-native-scroll]')) {
+      reset();
+      return;
+    }
+    gestureStart ??= scrollY;
+    const delta = event.deltaY;
+    const stepped = event.deltaMode === 1 ||
+      (event.deltaMode === 0 && Math.abs(delta) >= 100 && (delta % 100 === 0 || delta % 120 === 0));
+    if (!stepped) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      target = null;
+      scheduleSettle();
+      return;
+    }
+    const max = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+    target = Math.max(0, Math.min(max, (target ?? scrollY) + delta * (event.deltaMode === 1 ? 28 : 1)));
+    event.preventDefault();
+    if (!frame) {
+      lastTime = performance.now();
+      frame = requestAnimationFrame(advance);
+    }
+  }, {passive: false});
+
+  window.addEventListener('scroll', () => {
+    if (gestureStart !== null && target === null && !touching) scheduleSettle();
+  }, {passive: true});
+  window.addEventListener('pointerdown', reset, {passive: true});
+  window.addEventListener('keydown', reset);
+  window.addEventListener('touchstart', () => {
+    reset();
+    touching = true;
+    if (!reduced.matches && !document.querySelector('dialog[open]')) gestureStart = scrollY;
+  }, {passive: true});
+  window.addEventListener('touchend', () => { touching = false; scheduleSettle(); }, {passive: true});
+  window.addEventListener('touchcancel', () => { touching = false; reset(); }, {passive: true});
+  reduced.addEventListener('change', reset);
+}
+enableSectionScrolling();
 
