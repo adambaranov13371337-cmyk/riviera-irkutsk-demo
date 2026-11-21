@@ -1,0 +1,41 @@
+.hall-about {background:#eee7da}
+.hall-scene {padding:clamp(42px,6vw,100px) var(--margin)}
+.hall-layout {
+  max-width:1520px;margin:auto;display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.12fr);
+  align-items:center;gap:clamp(32px,5.5vw,110px);
+}
+.hall-picture {overflow:hidden;background:#dfd2c0}
+.hall-picture img {width:100%;height:clamp(300px,59svh,720px);object-fit:cover}
+.hall-copy h2 {font-size:clamp(2.5rem,4.3vw,5.5rem);margin:0 0 .38em}
+.hall-passages {font:500 clamp(1.35rem,2.08vw,2.45rem)/1.18 var(--serif);letter-spacing:-.018em}
+.hall-passages p {margin:0 0 .72em}
+.hall-meter {display:none}
+.hall-benefits {padding:clamp(32px,4.6vw,76px) var(--margin);border-top:1px solid var(--edge)}
+.hall-benefits ul {margin-bottom:0}
+
+/* The outer track supplies native scroll distance; only this scene is pinned. */
+.hall-track.is-pinned {height:calc(100svh + var(--hall-travel))}
+.is-pinned .hall-scene {
+  position:sticky;top:0;height:100svh;display:grid;align-content:center;
+  padding-block:clamp(18px,4vh,56px);
+}
+.is-pinned .hall-layout {width:100%}
+.is-pinned .hall-passages {display:grid}
+.is-pinned .hall-passages p {
+  grid-area:1 / 1;align-self:center;margin:0;opacity:0;pointer-events:none;
+}
+.is-pinned .hall-passages p.is-current {opacity:1;pointer-events:auto}
+.is-pinned .hall-meter {
+  display:block;height:1px;background:#c7baab;margin-top:clamp(14px,3vh,34px);
+}
+.hall-meter i {display:block;height:100%;background:var(--wine);transform-origin:left;transform:scaleX(var(--hall-progress,0))}
+@media(max-width:700px) {
+  .hall-layout {grid-template-columns:1fr;gap:16px}
+  .hall-picture img {height:clamp(96px,22svh,205px);object-position:center 45%}
+  .hall-copy h2 {font-size:clamp(2.05rem,8vw,3.1rem)}
+  .hall-passages {font-size:clamp(1.28rem,5.7vw,1.65rem);line-height:1.15}
+}
+@media(max-height:560px) and (min-width:701px) {
+  .hall-picture img {height:min(72svh,340px)}
+}

@@ -59,7 +59,7 @@ details.banquet-leaf {border: 0; border-top: 1px solid var(--edge); padding: 0}
 }
 .banquet-leaf[open] .banquet-leaf-stage {animation: banquet-unfold .3s var(--ease)}
 .banquet-sheet {
-  position: relative; display: grid; place-items: center;
+  position: relative; display: block;
   width: 100%; height: 100%; border: 0; padding: 0;
   cursor: zoom-in; background: transparent;
 }
@@ -99,7 +99,7 @@ details.banquet-leaf {border: 0; border-top: 1px solid var(--edge); padding: 0}
 .banquet-tools .sheet-close {width: 42px; font: 300 2.05rem/1 var(--sans)}
 .sheet-scroll {flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 15px}
 .sheet-scroll img {display: block; width: 100%; height: 100%; object-fit: contain; cursor: zoom-in}
-.sheet-scroll.is-enlarged img {display: block; margin: 0 auto; height: auto; width: max(100%, 920px); max-width: none; cursor: zoom-out}
+.sheet-scroll.is-enlarged img {display: block; margin: 0 auto; height: auto; width: max(135%, 920px); max-width: none; cursor: zoom-out}
 @keyframes banquet-unfold {from{opacity:.52; transform: translateY(-9px)} to{opacity:1;transform:none}}
 @media (hover:hover) and (pointer:fine) {
   .banquet-leaf > summary:hover {padding-left: 8px; color: var(--wine)}
